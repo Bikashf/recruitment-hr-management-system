@@ -10,7 +10,7 @@ TalentForce is a production-ready, full-stack recruitment and human resources ma
 - **Frontend**: Next.js 14 (App Router) with Tailwind CSS styling and client-side JWT route guarding.
 - **Backend**: FastAPI (Python 3.10) with asynchronous database connections.
 - **Primary Database**: PostgreSQL (relational storage of operational details).
-- **Secondary Database**: MongoDB (unstructured document storage for PDF/DOCX resumes).
+- **Secondary Database**: MongoDB GridFS (unstructured binary chunked storage for PDF/DOCX resumes).
 - **ORM / Migrations**: SQLAlchemy & Alembic schema management.
 - **Auth**: JWT (Access and Refresh token rotation) with password hashing using bcrypt.
 
@@ -32,13 +32,13 @@ TalentForce is a production-ready, full-stack recruitment and human resources ma
                                v                   v
                      +---------+---------+  +------+-----------------+
                      |    PostgreSQL     |  |     MongoDB            |
-                     |  (Structured DB)  |  |  (Resumes Document DB) |
+                     |  (Structured DB)  |  |  (Resumes GridFS Bucket)|
                      +-------------------+  +------------------------+
 ```
 
 ### Database Split Rationale
 1. **PostgreSQL**: Handles structured business entities (`users`, `jobs`, `applications`, `interviews`) that require strict integrity, transaction safety (ACID), foreign keys, and complex join queries (e.g., matching candidates with scheduled interviews).
-2. **MongoDB**: Acts as a document store. Candidate resumes (which can be up to 5MB PDF or DOCX files) are stored as base64 document attachments. By offloading resume binaries to MongoDB, PostgreSQL database logs and tables remain small, indexed, and fast.
+2. **MongoDB GridFS**: Stores unstructured resume binary files. GridFS splits files (which must be PDF or DOCX format, up to 5MB in size) into chunks (default 255KB) to allow efficient binary streaming. By offloading heavy resume blobs to MongoDB GridFS, PostgreSQL tables remain lightweight, highly indexed, and fast for joins and transactional metadata queries.
 
 ---
 
