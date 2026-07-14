@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: hr_postgres_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hr_system
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mongo:
+    image: mongo:6.0
+    container_name: hr_mongo_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: hr_backend_api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/hr_system
+      - MONGODB_URL=mongodb://mongo:27017/hr_system_resumes
+      - MONGODB_DB_NAME=hr_system_resumes
+      - SECRET_KEY=supersecretjwtkeythatshouldbechangedinproduction12345!
+      - ALGORITHM=HS256
+    depends_on:
+      db:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    command: >
+      sh -c "python -c \"import socket, time; s = socket.socket(socket.AF_INET, socket.SOCK_STREAM); print('Waiting for database connection...'); [time.sleep(1) for _ in range(30) if s.connect_ex(('db', 5432)) != 0]; print('Database is up.')\" && 
+             alembic upgrade head && 
+             python seed.py && 
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build: ./frontend
+    container_name: hr_frontend_client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+
+volumes:
+  postgres_data:
+  mongo_data:
