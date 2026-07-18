@@ -27,6 +27,8 @@ class User(Base):
     password_hash = Column(String, nullable=False)
     role = Column(Enum(UserRole), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    reset_token = Column(String, unique=True, index=True, nullable=True)
+    reset_token_expires = Column(DateTime, nullable=True)
 
     # Relationships
     jobs_created = relationship("Job", back_populates="hr_user", cascade="all, delete-orphan")

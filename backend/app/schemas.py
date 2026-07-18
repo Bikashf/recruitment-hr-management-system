@@ -39,6 +39,13 @@ class TokenResponse(BaseModel):
 class TokenRefreshRequest(BaseModel):
     refresh_token: str
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: str = Field(..., min_length=6, description="Password must be at least 6 characters.")
+
 # --- Job Schemas ---
 class JobBase(BaseModel):
     title: str = Field(..., min_length=3, max_length=100)

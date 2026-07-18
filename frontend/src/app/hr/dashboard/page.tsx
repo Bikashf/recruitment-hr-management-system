@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "../../../utils/api";
+import { apiFetch, API_BASE_URL } from "../../../utils/api";
 import Header from "../../../components/Header";
 import { Briefcase, FileText, User, Plus, Edit2, XCircle, Calendar, Download } from "lucide-react";
 
@@ -214,7 +214,7 @@ export default function HrDashboard() {
                       </td>
                       <td className="py-3 text-right flex items-center justify-end space-x-2">
                         <a
-                          href={`http://localhost:8000/api/applications/${app.id}/resume`}
+                          href={`${API_BASE_URL}/applications/${app.id}/resume`}
                           target="_blank"
                           rel="noreferrer"
                           className="p-1.5 text-slate-400 hover:text-sky-600 transition"

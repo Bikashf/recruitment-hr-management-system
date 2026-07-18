@@ -33,6 +33,15 @@ app.include_router(applications.router, prefix="/api")
 app.include_router(interviews.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 
+@app.on_event("startup")
+async def startup_event():
+    from app.database import mongo_client, settings
+    try:
+        await mongo_client.admin.command('ping')
+        logger.info(f"Successfully connected to MongoDB Atlas database: {settings.MONGODB_DB_NAME}")
+    except Exception as e:
+        logger.error(f"Failed to connect to MongoDB Atlas: {e}")
+
 # Centralized Error Handling & Exception Middleware (Requirement 4)
 # Rationale: Standardizes API error structures, preventing backend trace leakage while ensuring predictable client-side error parsing.
 
