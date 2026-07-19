@@ -1,5 +1,7 @@
 FROM python:3.10-slim
 
+ENV PYTHONUNBUFFERED=1
+
 # Install system dependencies needed for compiling psycopg2 or building tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
@@ -17,4 +19,4 @@ COPY . .
 
 EXPOSE 8000
 
-# Server execution will be handled in docker-compose.yml command to await database ready
+CMD ["sh", "-c", "python wait_for_db.py && alembic upgrade head && python seed.py && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
