@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+import os
 import logging
 
 from app.routers import auth, jobs, applications, interviews, admin
@@ -16,11 +17,17 @@ app = FastAPI(
     docs_url="/docs"
 )
 
-# CORS Configuration for development
-# Rationale: Allows the Next.js frontend (running on a different localhost port) to invoke API requests.
+# CORS Configuration
+# Rationale: Allows the frontend client (local or production) to invoke API requests.
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3001")
+if allowed_origins_str == "*":
+    origins = ["*"]
+else:
+    origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict this to actual origins in production deployments
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

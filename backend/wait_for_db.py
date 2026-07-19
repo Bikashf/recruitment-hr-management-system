@@ -1,8 +1,21 @@
 import socket
 import time
 import sys
+import os
+from urllib.parse import urlparse
 
 def wait_for_db(host="db", port=5432, timeout=30):
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url:
+        try:
+            parsed = urlparse(db_url)
+            if parsed.hostname:
+                host = parsed.hostname
+            if parsed.port:
+                port = parsed.port
+        except Exception as e:
+            print(f"Warning: Failed to parse DATABASE_URL ({e}). Using default host/port.")
+
     print(f"Waiting for database connection at {host}:{port}...")
     for i in range(1, timeout + 1):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
